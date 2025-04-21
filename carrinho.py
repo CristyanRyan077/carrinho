@@ -1,10 +1,12 @@
 from time import sleep
 from estoque import exibir_estoque
+from decimal import Decimal
 import mysql.connector
 import keyring
 
 
 METODOS_PAGAMENTO = ["Dinheiro", "Cartão", "Pix"]
+entrada = "Bem vindo a Loja Python!"
 
 
 def get_db_config():
@@ -67,6 +69,47 @@ def criar_tabela():
             conn.close()
 
 
+def cartão(total):
+    sleep(0.3)
+    print()
+    print("-=" * 20)
+    while True:
+        try:
+            parc = int(input("Quantas vezes deseja parcelar a compra? "))
+            break
+        except ValueError:
+            print("Valor invalido")
+            continue
+    if parc == 0:
+        desconto = total * Decimal("0.8")
+        print(f"Valor a pagar com desconto de 20% R${desconto:.2f}")
+    elif 4 > parc and parc > 0:
+        juros = total * Decimal("1.2")
+        valor_parcela = juros / Decimal(parc)
+        print(f"Valor total com juros de 20$: R${juros:.2f}")
+        print(f"Parcelado em {parc}x de R${valor_parcela:.2f}")
+    elif 8 > parc:
+        juros = total * Decimal("1.4")
+        valor_parcela = juros / Decimal(parc)
+        print(f"Valor total com juros de 40%: R${juros:.2f}")
+        print(f"Parcelado em {parc}x de R${valor_parcela:.2f}")
+    else:
+        print("Valor invalido")
+
+    print("-=" * 20)
+    print()
+    sleep(0.3)
+
+
+def pix(total):
+    sleep(0.3)
+    print()
+    print("Chave pix: [ PLACEHOLDER ]")
+    print(f"Valor a pagar R${total}")
+    print()
+    sleep(0.3)
+
+
 def menu(conn):
     while True:
         exibir_estoque()
@@ -99,13 +142,20 @@ def menu(conn):
                     print(f"{i} - {metodo}")
                 try:
                     opcao_metodo = int(input("Escolha o método: "))
-                    if opcao_metodo < 1 or opcao_metodo >len(METODOS_PAGAMENTO):
-                        raise ValueError  
+                    if opcao_metodo < 1 or opcao_metodo > len(METODOS_PAGAMENTO):
+                        raise ValueError
                     metodo_pagamento = METODOS_PAGAMENTO[opcao_metodo - 1]
+
                 except ValueError:
-                    print(f"Opcão invalida! Digite um numero entre 1 e {len(METODOS_PAGAMENTO)}")
+                    print(
+                        f"Opcão invalida! Digite um numero entre 1 e {len(METODOS_PAGAMENTO)}"
+                    )
                     continue
                 total = preco_unitario * quantidade
+                if metodo_pagamento == "Pix":
+                    pix(total)
+                elif metodo_pagamento == "Cartão":
+                    cartão(total)
 
                 confirm = input("Confirmar compra? (S/N): ").strip().upper()
                 while confirm not in ("S", "N"):
@@ -167,6 +217,6 @@ def main():
 
 if __name__ == "__main__":
     print("=-" * 30)
-    print("Bem vindo a Loja Python!")
+    print(f"{entrada:^55}")
     print("=-" * 30)
     main()
